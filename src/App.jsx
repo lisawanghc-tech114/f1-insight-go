@@ -48,6 +48,14 @@ const TOOLTIP_STYLE = {
 
 const DEFAULT_DRIVERS = ['VER', 'NOR', 'LEC', 'HAM'];
 
+const COMPOUND_ZH = {
+  SOFT: '軟胎',
+  MEDIUM: '中性胎',
+  HARD: '硬胎',
+  INTERMEDIATE: '雨胎（過渡）',
+  WET: '全雨胎',
+};
+
 const FLAG_BADGE = {
   GREEN: 'bg-green-600/20 text-green-400 border-green-600/40',
   YELLOW: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/40',
@@ -733,7 +741,7 @@ export default function App() {
                 {/* 進度條 */}
                 <div className="flex items-center gap-3">
                   <span className="text-xs text-muted-foreground font-mono w-16">
-                    Frame {frameIdx} / {animationFrames.length}
+                    第 {frameIdx} 幀 / {animationFrames.length}
                   </span>
                   <input
                     type="range"
@@ -744,7 +752,7 @@ export default function App() {
                     className="flex-1 accent-f1-red"
                   />
                   <span className="text-xs text-muted-foreground font-mono w-20 text-right">
-                    t = {animationFrames[frameIdx]?.t ?? '—'}
+                    時刻 {animationFrames[frameIdx]?.t ?? '—'} 秒
                   </span>
                 </div>
 
@@ -852,7 +860,7 @@ export default function App() {
                           <span className="w-1 h-4 rounded-sm" style={{ background: color }} />
                           <span className="font-mono font-bold w-9">{r.driver}</span>
                           <span className="ml-auto text-[10px] text-muted-foreground font-mono">
-                            {r.position === 1 ? 'LEADER' : `+${(r.gap / trackLength).toFixed(2)}L`}
+                            {r.position === 1 ? '領先' : `+${(r.gap / trackLength).toFixed(2)} 圈`}
                           </span>
                         </li>
                       );
@@ -901,7 +909,7 @@ export default function App() {
                   <CardTitle className="flex items-center gap-2">
                     <ShieldAlert className="w-5 h-5 text-f1-red" />關鍵事件解讀
                   </CardTitle>
-                  <CardDescription>從 race_control 自動偵測的事故、旗號、罰時</CardDescription>
+                  <CardDescription>從賽事管控系統自動偵測的事故、旗號、罰時</CardDescription>
                 </CardHeader>
                 <CardContent>
                   {keyMoments.length === 0 ? (
@@ -919,7 +927,7 @@ export default function App() {
                               <span className="font-mono text-[10px]">{m.drivers.join(' · ')}</span>
                             )}
                           </div>
-                          <p className="text-sm mt-0.5">{m.message}</p>
+                          <p className="text-sm mt-0.5">{translateRCMessage(m.message)}</p>
                           <p className="text-xs text-muted-foreground mt-1">
                             {tacticalReading(m)}
                           </p>
@@ -942,8 +950,8 @@ export default function App() {
                     <BarChart data={compoundPace} layout="vertical" margin={{ left: 16 }}>
                       <CartesianGrid strokeDasharray="3 3" stroke="#38383F" />
                       <XAxis type="number" stroke="#9ca3af" domain={['dataMin - 0.2', 'dataMax + 0.2']} />
-                      <YAxis type="category" dataKey="compound" stroke="#9ca3af" width={80} />
-                      <Tooltip {...TOOLTIP_STYLE} formatter={(v) => `${v}s`} />
+                      <YAxis type="category" dataKey="compound" stroke="#9ca3af" width={90} tickFormatter={(v) => COMPOUND_ZH[v] || v} />
+                      <Tooltip {...TOOLTIP_STYLE} formatter={(v) => `${v} 秒`} />
                       <Bar dataKey="avg">
                         {compoundPace.map((row, i) => (
                           <Cell key={i} fill={COMPOUND_COLORS[row.compound] || '#666'} />
@@ -955,8 +963,8 @@ export default function App() {
                     {compoundPace.length > 0 && (
                       <p>
                         <Lightbulb className="w-3 h-3 inline text-f1-gold mr-1" />
-                        最快胎種：<span className="text-f1-gold font-bold">{compoundPace[0].compound}</span>
-                        （{compoundPace[0].avg}s 平均、{compoundPace[0].samples} 樣本）
+                        最快胎種：<span className="text-f1-gold font-bold">{COMPOUND_ZH[compoundPace[0].compound] || compoundPace[0].compound}</span>
+                        （平均 {compoundPace[0].avg} 秒，共 {compoundPace[0].samples} 個樣本）
                       </p>
                     )}
                   </div>
@@ -1001,8 +1009,8 @@ export default function App() {
                         const p = payload[0].payload;
                         return (
                           <div style={TOOLTIP_STYLE.contentStyle} className="px-3 py-2 text-xs">
-                            <div className="font-bold" style={{ color: '#FFD600' }}>{p.driver} · 第 {p.lap} 圈</div>
-                            <div className="text-muted-foreground">{p.fromCompound} → {p.toCompound}</div>
+                            <div className="font-bold" style={{ color: '#FFD600' }}>{p.driver} · 第 {p.lap} 圈進站</div>
+                            <div className="text-muted-foreground">{COMPOUND_ZH[p.fromCompound] || p.fromCompound} → {COMPOUND_ZH[p.toCompound] || p.toCompound}</div>
                           </div>
                         );
                       }}
@@ -1162,7 +1170,7 @@ export default function App() {
                             </Badge>
                           </td>
                           <td className="py-2 pr-3 text-xs">{rc.scope || '—'}</td>
-                          <td className="py-2 text-xs">{rc.message}</td>
+                          <td className="py-2 text-xs">{translateRCMessage(rc.message)}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -1563,6 +1571,49 @@ function PositionDelta({ delta }) {
 // ──────────────────────────────────────────────
 // 純函式輔助
 // ──────────────────────────────────────────────
+
+const REASON_ZH = {
+  'CAUSING A COLLISION': '造成碰撞',
+  'FORCING ANOTHER CAR OFF THE TRACK': '逼迫他車出賽道',
+  'FAILING TO SERVE TIME PENALTY CORRECTLY': '未正確執行罰時',
+  'TRACK LIMITS VIOLATION': '超出賽道邊界',
+  'UNSAFE RELEASE': '危險釋放',
+};
+
+function translateRCMessage(msg) {
+  if (!msg) return msg;
+  const m = msg.trim();
+  let match;
+
+  // 簡單固定句
+  if (m === 'CHEQUERED FLAG') return '方格旗';
+  if (m === 'GREEN LIGHT - PIT EXIT OPEN') return '綠燈 — 維修站出口開放';
+  if (/BLUE HEAD PADDING/i.test(m)) return '規定：必須使用藍色頭部護墊';
+
+  const reason = (r) => REASON_ZH[r?.trim()] || r?.trim();
+
+  // FIA STEWARDS: N SECOND TIME PENALTY FOR CAR X (DRV) - REASON
+  match = m.match(/FIA STEWARDS:\s*(\d+) SECOND TIME PENALTY FOR CAR \d+ \(([A-Z]+)\)\s*-\s*(.+)/i);
+  if (match) return `FIA 裁判：${match[2]} 號車罰時 ${match[1]} 秒 — ${reason(match[3])}`;
+
+  // FIA STEWARDS: TURN X INCIDENT INVOLVING CARS A (DRV1) AND B (DRV2) UNDER INVESTIGATION - REASON
+  match = m.match(/FIA STEWARDS:\s*TURN (\w+) INCIDENT INVOLVING CARS \d+ \(([A-Z]+)\) AND \d+ \(([A-Z]+)\) UNDER INVESTIGATION\s*-\s*(.+)/i);
+  if (match) return `FIA 裁判：第 ${match[1]} 彎 ${match[2]} 與 ${match[3]} 意外 — 調查中（${reason(match[4])}）`;
+
+  // FIA STEWARDS: PIT LANE INCIDENT INVOLVING CAR X (DRV) UNDER INVESTIGATION - REASON
+  match = m.match(/FIA STEWARDS:\s*PIT LANE INCIDENT INVOLVING CAR \d+ \(([A-Z]+)\) UNDER INVESTIGATION\s*-\s*(.+)/i);
+  if (match) return `FIA 裁判：${match[1]} 號車維修站意外 — 調查中（${reason(match[2])}）`;
+
+  // TURN X INCIDENT INVOLVING CARS A (DRV1) AND B (DRV2) NOTED - REASON
+  match = m.match(/TURN (\w+) INCIDENT INVOLVING CARS \d+ \(([A-Z]+)\) AND \d+ \(([A-Z]+)\) NOTED\s*-\s*(.+)/i);
+  if (match) return `第 ${match[1]} 彎：${match[2]} 與 ${match[3]} 意外記錄 — ${reason(match[4])}`;
+
+  // PIT LANE INCIDENT INVOLVING CAR X (DRV) NOTED - REASON
+  match = m.match(/PIT LANE INCIDENT INVOLVING CAR \d+ \(([A-Z]+)\) NOTED\s*-\s*(.+)/i);
+  if (match) return `${match[1]} 號車維修站意外記錄 — ${reason(match[2])}`;
+
+  return m;
+}
 
 function tacticalReading(m) {
   switch (m.type) {
