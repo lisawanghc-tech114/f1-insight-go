@@ -1,0 +1,47 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  /* shadcn 預設色票（深色 — 與 F1 主題對齊） */
+  :root {
+    --background: 240 10% 9%;        /* #15151E */
+    --foreground: 0 0% 98%;
+    --card: 240 11% 13%;             /* #1E1E2A */
+    --card-foreground: 0 0% 98%;
+    --popover: 240 10% 9%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 0 100% 44%;           /* #E10600 F1 紅 */
+    --primary-foreground: 0 0% 98%;
+    --secondary: 240 5% 22%;         /* #38383F */
+    --secondary-foreground: 0 0% 98%;
+    --muted: 240 5% 22%;
+    --muted-foreground: 240 5% 65%;
+    --accent: 240 5% 22%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 63% 31%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 5% 22%;
+    --input: 240 5% 22%;
+    --ring: 0 100% 44%;
+    --radius: 0.5rem;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: 'Microsoft JhengHei', 'PingFang TC', system-ui, -apple-system, sans-serif;
+  }
+
+  /* F1 風格 scrollbar */
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
+  ::-webkit-scrollbar-track { @apply bg-f1-black; }
+  ::-webkit-scrollbar-thumb { @apply bg-f1-charcoal rounded; }
+  ::-webkit-scrollbar-thumb:hover { @apply bg-f1-red; }
+}
+
+/* Recharts 圖表容器 — 強制透明背景配合 dark theme */
+.recharts-wrapper { @apply text-foreground; }
+.recharts-cartesian-grid-horizontal line,
+.recharts-cartesian-grid-vertical line { stroke: #38383F; stroke-opacity: 0.5; }
+.recharts-text { fill: #B8B8C2; font-size: 12px; }
+.recharts-tooltip-cursor { fill: rgba(225, 6, 0, 0.1); }

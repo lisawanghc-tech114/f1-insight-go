@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run *)",
+      "Bash(awk -F',' 'NR>1{print $1}' \"C:/Users/hcwan/OneDrive/Desktop/f1-workshop-student/public/data/locations.csv\")",
+      "Bash(awk -F',' 'NR>1{print $2}' \"C:/Users/hcwan/OneDrive/Desktop/f1-workshop-student/public/data/locations.csv\")",
+      "Bash(awk -F',' 'NR>1{print $3,$4}' \"C:/Users/hcwan/OneDrive/Desktop/f1-workshop-student/public/data/locations.csv\")",
+      "Bash(awk 'BEGIN{xmin=ymin=99999;xmax=ymax=-99999}{if\\($1<xmin\\)xmin=$1;if\\($1>xmax\\)xmax=$1;if\\($2<ymin\\)ymin=$2;if\\($2>ymax\\)ymax=$2}END{print \"x:\",xmin,\"to\",xmax,\"  y:\",ymin,\"to\",ymax}')",
+      "Bash(awk -F',' 'NR>1{print $16,$17}' \"C:/Users/hcwan/OneDrive/Desktop/f1-workshop-student/public/data/telemetry_VER.csv\")",
+      "Bash(awk 'BEGIN{xmin=ymin=99999;xmax=ymax=-99999}{if\\($1<xmin\\)xmin=$1;if\\($1>xmax\\)xmax=$1;if\\($2<ymin\\)ymin=$2;if\\($2>ymax\\)ymax=$2}END{print \"telemetry X:\",xmin,\"to\",xmax,\" Y:\",ymin,\"to\",ymax}')",
+      "Bash(awk -F',' 'NR>1 && $1<=4{print}' \"C:/Users/hcwan/OneDrive/Desktop/f1-workshop-student/public/data/locations.csv\")",
+      "Bash(gh auth *)",
+      "PowerShell(gh auth *)",
+      "PowerShell(Get-Command *)",
+      "PowerShell(& \"C:\\\\Program Files\\\\GitHub CLI\\\\gh.exe\" auth status)"
+    ]
+  }
+}
